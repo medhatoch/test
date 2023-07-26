@@ -1,90 +1,87 @@
 #include "shell.h"
 
 /**
-* _strcpy - Copies the string pointed to by src, including the null
-*           terminator, to the buffer pointed to by dest.
-* @dest: The destination buffer.
-* @src: The source string.
-*
-* Return: A pointer to the destination buffer.
-*/
-char *_strcpy(char *dest, const char *src)
+ * _strcpy - copies a string
+ * @dest: the destination
+ * @src: the source
+ *
+ * Return: pointer to destination
+ */
+char *_strcpy(char *dest, char *src)
 {
-size_t i;
+	int i = 0;
 
-if (dest == src || src == NULL)
-return (dest);
-
-for (i = 0; src[i]; i++)
-dest[i] = src[i];
-
-dest[i] = '\0';
-
-return (dest);
+	if (dest == src || src == 0)
+		return (dest);
+	while (src[i])
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	dest[i] = 0;
+	return (dest);
 }
 
 /**
-* _strdup - Duplicates a string.
-* @str: The input string.
-*
-* Return: A pointer to the duplicated string, or NULL if memory allocation fails.
-*/
+ * _strdup - duplicates a string
+ * @str: the string to duplicate
+ *
+ * Return: pointer to the duplicated string
+ */
 char *_strdup(const char *str)
 {
-size_t len, i;
-char *dup;
+	int length = 0;
+	char *ret;
 
-if (str == NULL)
-return (NULL);
-
-len = _strlen(str);
-dup = malloc(sizeof(char) * (len + 1));
-
-if (dup == NULL)
-return (NULL);
-
-for (i = 0; i < len; i++)
-dup[i] = str[i];
-
-dup[i] = '\0';
-
-return (dup);
+	if (str == NULL)
+		return (NULL);
+	while (*str++)
+		length++;
+	ret = malloc(sizeof(char) * (length + 1));
+	if (!ret)
+		return (NULL);
+	for (length++; length--;)
+		ret[length] = *--str;
+	return (ret);
 }
 
 /**
-* _puts - Prints a string to the standard output.
-* @str: The input string.
-*/
-void _puts(const char *str)
+ *_puts - prints an input string
+ *@str: the string to be printed
+ *
+ * Return: Nothing
+ */
+void _puts(char *str)
 {
-size_t i;
+	int i = 0;
 
-if (str == NULL)
-return;
-
-for (i = 0; str[i]; i++)
-_putchar(str[i]);
+	if (!str)
+		return;
+	while (str[i] != '\0')
+	{
+		_putchar(str[i]);
+		i++;
+	}
 }
 
 /**
-* _putchar - Writes a character to the standard output.
-* @c: The character to be written.
-*
-* Return: 1 on success, -1 on error.
-*/
+ * _putchar - writes the character c to stdout
+ * @c: The character to print
+ *
+ * Return: On success 1.
+ * On error, -1 is returned, and errno is set appropriately.
+ */
 int _putchar(char c)
 {
-static char buf[BUF_SIZE];
-static int index;
+	static int i;
+	static char buf[WRITE_BUF_SIZE];
 
-if (c == BUF_FLUSH || index >= BUF_SIZE - 1)
-{
-write(1, buf, index);
-index = 0;
-}
-
-if (c != BUF_FLUSH)
-buf[index++] = c;
-
-return (1);
+	if (c == BUF_FLUSH || i >= WRITE_BUF_SIZE)
+	{
+		write(1, buf, i);
+		i = 0;
+	}
+	if (c != BUF_FLUSH)
+		buf[i++] = c;
+	return (1);
 }

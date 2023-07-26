@@ -1,78 +1,62 @@
 #include "shell.h"
 
 /**
-* _memset - Fills a block of memory with a given value.
-* @s: Pointer to the memory block.
-* @b: Byte value to fill the memory with.
-* @n: Number of bytes to be filled.
-*
-* Return: Pointer to the memory block.
-*/
-void *_memset(void *s, int b, size_t n)
+ **_memset - fills memory with a constant byte
+ *@s: the pointer to the memory area
+ *@b: the byte to fill *s with
+ *@n: the amount of bytes to be filled
+ *Return: (s) a pointer to the memory area s
+ */
+char *_memset(char *s, char b, unsigned int n)
 {
-unsigned char *ptr = s;
-size_t i;
+	unsigned int i;
 
-for (i = 0; i < n; i++)
-ptr[i] = (unsigned char)b;
-
-return s;
+	for (i = 0; i < n; i++)
+		s[i] = b;
+	return (s);
 }
 
 /**
-* ffree - Frees a string of strings.
-* @str: Pointer to the string of strings.
-*/
-void ffree(char **str)
+ * ffree - frees a string of strings
+ * @pp: string of strings
+ */
+void ffree(char **pp)
 {
-size_t i;
+	char **a = pp;
 
-if (!str)
-return;
-
-for (i = 0; str[i]; i++)
-{
-free(str[i]);
-str[i] = NULL;
-}
-
-free(str);
+	if (!pp)
+		return;
+	while (*pp)
+		free(*pp++);
+	free(a);
 }
 
 /**
-* _realloc - Reallocates a block of memory.
-* @ptr: Pointer to the previous block of memory.
-* @old_size: Size of the previous block of memory.
-* @new_size: Size of the new block of memory.
-*
-* Return: Pointer to the new block of memory.
-*/
+ * _realloc - reallocates a block of memory
+ * @ptr: pointer to previous malloc'ated block
+ * @old_size: byte size of previous block
+ * @new_size: byte size of new block
+ *
+ * Return: pointer to da ol'block nameen.
+ */
 void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
 {
-void *new_ptr;
+	char *p;
 
-if (ptr == NULL)
-return (malloc(new_size));
+	if (!ptr)
+		return (malloc(new_size));
+	if (!new_size)
+		return (free(ptr), NULL);
+	if (new_size == old_size)
+		return (ptr);
 
-if (new_size == 0)
-{
-free(ptr);
-return (NULL);
-}
+	p = malloc(new_size);
+	if (!p)
+		return (NULL);
 
-if (new_size == old_size)
-return (ptr);
-
-new_ptr = malloc(new_size);
-
-if (new_ptr == NULL)
-return (NULL);
-
-if (old_size < new_size)
-_memset(new_ptr + old_size, 0, new_size - old_size);
-
-_memcpy(new_ptr, ptr, old_size);
-free(ptr);
-
-return (new_ptr);
+	old_size = old_size < new_size ? old_size : new_size;
+	while (old_size--)
+		p[old_size] = ((char *)ptr)[old_size];
+	free(ptr);
+	return (p);
 }

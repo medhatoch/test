@@ -1,123 +1,93 @@
 #include "shell.h"
 
 /**
- * get_environ - Returns a string array copy of the environment variables
- * @info: Pointer to the info struct
- * Return: Pointer to the string array containing environment variables
+ * get_environ - returns the string array copy of our environ
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ * Return: Always 0
  */
 char **get_environ(info_t *info)
 {
-    if (info->environ == NULL)
-    {
-        int env_count = 0;
-        list_t *env_node = info->env;
+	if (!info->environ || info->env_changed)
+	{
+		info->environ = list_to_strings(info->env);
+		info->env_changed = 0;
+	}
 
-        while (env_node)
-        {
-            env_count++;
-            env_node = env_node->next;
-        }
-
-        char **environ_copy = malloc((env_count + 1) * sizeof(char *));
-        if (environ_copy == NULL)
-            return (NULL);
-
-        int i = 0;
-        env_node = info->env;
-        while (env_node)
-        {
-            environ_copy[i] = env_node->str;
-            env_node = env_node->next;
-            i++;
-        }
-        environ_copy[i] = NULL;
-        info->environ = environ_copy;
-    }
-
-    return (info->environ);
+	return (info->environ);
 }
 
 /**
- * _unsetenv - Removes an environment variable from the linked list
- * @info: Pointer to the info struct
- * @var: Name of the environment variable to remove
- * Return: 1 if the linked list was changed, 0 otherwise
+ * _unsetenv - Remove an environment variable
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ *  Return: 1 on delete, 0 otherwise
+ * @var: the string env var property
  */
 int _unsetenv(info_t *info, char *var)
 {
-    int env_changed = 0;
-    list_t *current = info->env;
-    list_t *prev = NULL;
+	list_t *node = info->env;
+	size_t i = 0;
+	char *p;
 
-    while (current)
-    {
-        if (_strcmp(current->str, var) == 0)
-        {
-            if (prev == NULL)
-                info->env = current->next;
-            else
-                prev->next = current->next;
+	if (!node || !var)
+		return (0);
 
-            free(current->str);
-            free(current);
-            env_changed = 1;
-            break;
-        }
-
-        prev = current;
-        current = current->next;
-    }
-
-    return (env_changed);
+	while (node)
+	{
+		p = starts_with(node->str, var);
+		if (p && *p == '=')
+		{
+			info->env_changed = delete_node_at_index(&(info->env), i);
+			i = 0;
+			node = info->env;
+			continue;
+		}
+		node = node->next;
+		i++;
+	}
+	return (info->env_changed);
 }
 
 /**
- * _setenv - Sets an environment variable in the linked list
- * @info: Pointer to the info struct
- * @var: Name of the environment variable
- * @value: Value of the environment variable
- * Return: 0 on success, -1 on failure
+ * _setenv - Initialize a new environment variable,
+ *             or modify an existing one
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ * @var: the string env var property
+ * @value: the string env var value
+ *  Return: Always 0
  */
 int _setenv(info_t *info, char *var, char *value)
 {
-    char *buf = NULL;
-    int ret = -1;
-    list_t *current = info->env;
+	char *buf = NULL;
+	list_t *node;
+	char *p;
 
-    while (current)
-    {
-        if (_strcmp(current->str, var) == 0)
-        {
-            free(current->str);
-            buf = malloc((_strlen(var) + _strlen(value) + 2) * sizeof(char));
-            if (buf == NULL)
-                return (-1);
+	if (!var || !value)
+		return (0);
 
-            _strcpy(buf, var);
-            _strcat(buf, "=");
-            _strcat(buf, value);
-            current->str = buf;
-            ret = 0;
-            break;
-        }
-
-        current = current->next;
-    }
-
-    if (ret == -1)
-    {
-        buf = malloc((_strlen(var) + _strlen(value) + 2) * sizeof(char));
-        if (buf == NULL)
-            return (-1);
-
-        _strcpy(buf, var);
-        _strcat(buf, "=");
-        _strcat(buf, value);
-        if (add_node_end(&info->env, buf) == NULL)
-            ret = -1;
-        else
-            ret = 0;
-    }
-
-    return (ret);
+	buf = malloc(_strlen(var) + _strlen(value) + 2);
+	if (!buf)
+		return (1);
+	_strcpy(buf, var);
+	_strcat(buf, "=");
+	_strcat(buf, value);
+	node = info->env;
+	while (node)
+	{
+		p = starts_with(node->str, var);
+		if (p && *p == '=')
+		{
+			free(node->str);
+			node->str = buf;
+			info->env_changed = 1;
+			return (0);
+		}
+		node = node->next;
+	}
+	add_node_end(&(info->env), buf, 0);
+	free(buf);
+	info->env_changed = 1;
+	return (0);
 }
